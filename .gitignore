@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+.cache/
+.wrangler/
+.superpowers/
+coverage/
+playwright-report/
+test-results/
+sanity-schema.json
