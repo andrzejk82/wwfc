@@ -1,0 +1,5 @@
+---
+interface Props{title:string;intro?:string;eyebrow?:string;}
+const {title,intro,eyebrow='Warsaw West Fight Club'}=Astro.props;
+---
+<div class="page-head"><div class="wrap"><p class="eyebrow">{eyebrow}</p><h1>{title}</h1>{intro&&<p class="lead">{intro}</p>}</div></div>

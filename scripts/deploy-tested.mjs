@@ -1,0 +1,25 @@
+import {readFile,writeFile,appendFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {deploymentPolicy,isProjectDeploymentUrl} from '../src/lib/build/deployment-policy.ts';
+import {assertArtifactManifest} from '../src/lib/build/manifest.ts';
+import {artifactDigest} from '../src/lib/build/artifact-integrity.ts';
+import {pagesApi} from './pages-api.mjs';
+
+const {project,target}=deploymentPolicy(process.env);
+const manifest=JSON.parse(await readFile('.cache/build-manifest.json','utf8'));
+assertArtifactManifest(manifest,JSON.parse(await readFile('dist/version.json','utf8')),await readFile(process.env.CONTENT_SNAPSHOT_PATH));
+const seal=JSON.parse(await readFile('.cache/artifact-seal.json','utf8'));
+if(seal.digest!==await artifactDigest('dist'))throw new Error('Pliki wdrożenia zmieniły się po testach.');
+if(manifest.source!==(target==='production'?'published':'drafts')||manifest.sourceCommit!==process.env.GITHUB_SHA)throw new Error('Niezgodna tożsamość artefaktu.');
+const current=await pagesApi();
+if(current.source)throw new Error('Projekt Pages musi korzystać wyłącznie z Direct Upload.');
+if(!current.canonical_deployment?.id&&process.env.ALLOW_FIRST_DEPLOYMENT!=='true')throw new Error('Pierwsze wdrożenie wymaga osobnego odbioru: brak wersji do rollbacku.');
+await writeFile('.cache/previous-deployment.json',JSON.stringify({id:current.canonical_deployment?.id??null}));
+const result=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','pages','deploy','dist','--project-name',project,'--branch','main','--commit-hash',process.env.GITHUB_SHA,'--commit-dirty=false'],{env:process.env,encoding:'utf8',maxBuffer:5*1024*1024});
+if(result.status!==0)throw new Error('Upload sprawdzonego artefaktu nie powiódł się. Sprawdź stan Pages przed ponowieniem.');
+const urls=(result.stdout??'').match(/https:\/\/[a-z0-9.-]+\.pages\.dev/g)??[];
+const url=urls.find(value=>isProjectDeploymentUrl(value,project)&&new RegExp(`^[a-f0-9]{8,64}\\.${project}\\.pages\\.dev$`).test(new URL(value).hostname));
+if(!url)throw new Error('Upload zakończony, ale nie rozpoznano adresu. Sprawdź stan Pages i rollback.');
+await writeFile('.cache/deployment.json',JSON.stringify({url}));
+if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`url=${url}\n`);
+console.log('Przesłano sprawdzony artefakt. Rozpoczyna się kontrola wdrożenia.');

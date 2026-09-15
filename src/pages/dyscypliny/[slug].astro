@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import {getContent} from '../../lib/content/repository';
+export function getStaticPaths(){return getContent().disciplines.map(d=>({params:{slug:d.slug},props:{d}}));}
+const {d}=Astro.props;const c=getContent();const coaches=new Set(c.releases.flatMap(r=>r.sessions.filter(s=>s.disciplineSlug===d.slug).map(s=>s.coachSlug)));
+---
+<BaseLayout title={d.name} description={d.description} canonicalPath={`/dyscypliny/${d.slug}/`}><PageHead title={d.name} intro={d.description} eyebrow="Dyscypliny WWFC"/><section class="section"><div class="wrap split"><div><h2>Znajdź swoją grupę.</h2><p class="lead">W grafiku sprawdzisz poziom, grupę wiekową, prowadzącego i salę. Przed pierwszą wizytą potwierdź w recepcji potrzebny sprzęt.</p><div class="actions"><a class="btn" href={`/grafik/?discipline=${d.slug}`}>Grafik: {d.name} ↗</a><a class="btn secondary" href="/pierwszy-trening/">Pierwszy trening</a></div></div><div>{d.image&&<img src={d.image} alt={d.imageAlt ?? d.name} width="640" height="640" loading="lazy"/>}<h2 style="font-size:2.8rem">Prowadzący</h2><ul>{c.coaches.filter(x=>coaches.has(x.slug)).map(x=><li><a href={`/trenerzy/${x.slug}/`}>{x.name}</a></li>)}</ul></div></div></section></BaseLayout>

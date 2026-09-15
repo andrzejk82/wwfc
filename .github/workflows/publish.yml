@@ -1,0 +1,162 @@
+name: WWFC validation and publication
+run-name: 'WWFC:${{ inputs.target || ''production'' }}:${{ inputs.request_id || github.run_id }}'
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        options: [production]
+        default: production
+      request_id:
+        type: string
+        default: ''
+  schedule:
+    - cron: '*/30 * * * *'
+    - cron: '0 22,23 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event_name != 'schedule' || vars.SCHEDULED_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+      - run: npm ci
+      - run: npm ci --prefix studio
+      - run: npm ci --prefix workers/publishing
+      - run: npm run test:unit
+      - run: npm --prefix studio run test
+      - run: npm --prefix studio run typecheck
+      - run: npm run studio:build
+      - run: npm --prefix workers/publishing run test
+      - run: npm --prefix workers/publishing run typecheck
+      - run: npm --prefix workers/publishing run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:fixture
+      - run: npm run test:e2e
+      - run: npm run verify:artifact
+      - run: npm audit --audit-level=high
+      - run: npm audit --prefix studio --audit-level=high
+      - run: npm audit --prefix workers/publishing --audit-level=high
+
+  publish:
+    needs: verify
+    if: >-
+      github.event_name != 'pull_request' && github.ref == 'refs/heads/main' &&
+      vars.DEPLOYMENT_ENABLED == 'true' &&
+      (inputs.target == '' || inputs.target == 'production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ${{ inputs.target || 'production' }}
+    concurrency:
+      group: wwfc-${{ inputs.target || 'production' }}
+      cancel-in-progress: false
+      queue: max
+    env:
+      PUBLICATION_TARGET: ${{ inputs.target || 'production' }}
+      PUBLICATION_REQUEST_ID: ${{ inputs.request_id }}
+      PUBLICATION_RECEIVER_URL: ${{ vars.PUBLICATION_RECEIVER_URL }}
+      SANITY_PROJECT_ID: objbb93c
+      SANITY_DATASET: production
+      CONTENT_SNAPSHOT_PATH: .cache/content.json
+      CONTENT_PERSPECTIVE: ${{ inputs.target == 'draft-preview' && 'drafts' || 'published' }}
+      DEPLOY_ENV: ${{ inputs.target || 'production' }}
+      PAGES_PROJECT_NAME: ${{ inputs.target == 'draft-preview' && vars.DRAFT_PAGES_PROJECT_NAME || vars.PRODUCTION_PAGES_PROJECT_NAME }}
+      PRODUCTION_PAGES_PROJECT_NAME: ${{ vars.PRODUCTION_PAGES_PROJECT_NAME }}
+      DRAFT_PAGES_PROJECT_NAME: ${{ vars.DRAFT_PAGES_PROJECT_NAME }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      DRAFT_PREVIEW_PROTECTION_VERIFIED: ${{ vars.DRAFT_PREVIEW_PROTECTION_VERIFIED }}
+      PREVIEW_PROTECTION_URLS: ${{ vars.PREVIEW_PROTECTION_URLS }}
+      ALLOW_FIRST_DEPLOYMENT: ${{ vars.ALLOW_FIRST_DEPLOYMENT }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+      - name: Claim publication request
+        id: claim
+        run: node scripts/publication-callback.mjs running
+        env:
+          PUBLICATION_CALLBACK_SECRET: ${{ secrets.PUBLICATION_CALLBACK_SECRET }}
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm ci
+      - if: steps.claim.outputs.accepted == 'true'
+        run: node --import tsx scripts/verify-preview-protection.mjs
+      # Snapshot is fetched only after this job has entered the target queue.
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm run content:fetch
+        env:
+          SANITY_API_READ_TOKEN: ${{ secrets.SANITY_API_READ_TOKEN }}
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm run build
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm run test:production
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm run test:lighthouse
+      - if: steps.claim.outputs.accepted == 'true'
+        run: npm run verify:artifact
+      - name: Upload the tested artifact
+        id: deploy
+        if: steps.claim.outputs.accepted == 'true'
+        run: node --import tsx scripts/deploy-tested.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Verify deployment
+        id: smoke
+        if: steps.claim.outputs.accepted == 'true'
+        run: npm run test:production
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+      - name: Roll back failed upload verification
+        if: failure() && steps.deploy.outcome != 'skipped' && steps.deploy.outcome != ''
+        run: node --import tsx scripts/rollback.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Report success
+        if: success() && steps.claim.outputs.accepted == 'true'
+        run: node scripts/publication-callback.mjs succeeded
+        env:
+          PUBLICATION_CALLBACK_SECRET: ${{ secrets.PUBLICATION_CALLBACK_SECRET }}
+      - name: Report failure
+        if: failure() && steps.claim.outputs.accepted == 'true'
+        run: node scripts/publication-callback.mjs failed
+        env:
+          PUBLICATION_CALLBACK_SECRET: ${{ secrets.PUBLICATION_CALLBACK_SECRET }}
+      # No artifact upload: draft content stays on the trusted runner and protected Pages.
+
+  report-validation-failure:
+    needs: [verify, publish]
+    if: >-
+      always() && github.event_name == 'workflow_dispatch' && inputs.request_id != '' &&
+      github.ref == 'refs/heads/main' && needs.verify.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    environment: ${{ inputs.target || 'production' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: node scripts/publication-callback.mjs failed
+        env:
+          PUBLICATION_TARGET: ${{ inputs.target || 'production' }}
+          PUBLICATION_REQUEST_ID: ${{ inputs.request_id }}
+          PUBLICATION_RECEIVER_URL: ${{ vars.PUBLICATION_RECEIVER_URL }}
+          PUBLICATION_CALLBACK_SECRET: ${{ secrets.PUBLICATION_CALLBACK_SECRET }}
+          SANITY_DATASET: production

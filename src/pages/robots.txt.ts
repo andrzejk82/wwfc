@@ -1,0 +1,1 @@
+export function GET(){return new Response(process.env.DEPLOY_ENV==='production'?'User-agent: *\nAllow: /\nSitemap: https://wwfc.com.pl/sitemap-index.xml\n':'User-agent: *\nDisallow: /\n',{headers:{'Content-Type':'text/plain; charset=utf-8'}});}

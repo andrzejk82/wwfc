@@ -138,7 +138,7 @@ Primary controls show the calendar week, day, discipline, and audience. Age grou
 - audience: adults, children, women;
 - age group;
 - level: intro, beginner, mixed, intermediate, sparring;
-- room: Mata 1, Mata 2, Salka;
+- room: Mata 1, Mata 2, Salka, Strefa cardio;
 - coach.
 
 Filters update the URL query string so the resulting view can be bookmarked and shared. `week=YYYY-MM-DD` identifies the Warsaw Monday; an omitted week means the current week. “Wyczyść filtry” restores the current week, showing all days on desktop and today on mobile. Week navigation is limited to loaded release coverage; dates without a valid release show the phone fallback. Back/forward navigation restores the view.
@@ -188,7 +188,7 @@ Sanity Studio uses a Polish-language navigation structure and role-protected log
 
 ### 10.2 Collection documents
 
-`scheduleRelease` is a collection document, not a singleton. It contains title, required inclusive Warsaw calendar dates `validFrom` and `validTo`, publication note, and owned arrays of recurring sessions, exceptions, and notices. Current, future and archived releases may coexist, but published validity ranges must not overlap. Copying a release creates independent session objects; changes to a future release cannot alter the current one. The editor sees release validity and public deployment status separately.
+`scheduleRelease` is a collection document, not a singleton. It contains title, required Warsaw calendar date `validFrom` and optional inclusive `validTo` (null means no stated end date), publication note, and owned arrays of recurring sessions, exceptions, and notices. Current, future and archived releases may coexist, but published validity ranges must not overlap. Copying a release creates independent session objects; changes to a future release cannot alter the current one. The editor sees release validity and public deployment status separately.
 
 `classSession` is an embedded recurring-session object owned by a release and contains:
 
@@ -203,9 +203,9 @@ Sanity Studio uses a Polish-language navigation structure and role-protected log
 - sort order;
 - archived flag used to remove obsolete recurring sessions from the active editing view without deleting their history.
 
-Each session has a stable key within its release. Required validation prevents publishing without a key, day, start/end time, discipline, coach, audience, level, or room. End time must be later than start time; overnight sessions are outside scope. Child sessions require an ordered age range. Sessions in the same room must not overlap after exceptions are applied.
+Each session has a stable key within its release. Required validation prevents publishing without a key, day, start time, discipline, coach, audience, level, or room. End time may be null when the authoritative source does not provide it. When present, it must be later than start time; overnight sessions are outside scope. Never infer duration from another class. Child sessions require an ordered age range. Known session intervals in the same room must not overlap after exceptions are applied. Unknown end times are reported as incomplete collision coverage, not fabricated.
 
-`sessionException` is owned by a release and contains `sessionKey`, `date`, `kind: cancelled | changed`, required explanation, and optional replacement start/end time, room, and coach. A changed exception must replace at least one value. At most one exception may exist per session/date; it must reference a session occurring on that date inside the release validity period. The unchanged recurring session supplies original values. Replacement times must remain ordered. Moving a single occurrence to another day and adding one-off extra classes are outside the initial editor's scope; they must not be approximated by a recurring session that unintentionally repeats in later weeks.
+`sessionException` is owned by a release and contains `sessionKey`, `date`, `kind: cancelled | changed`, required explanation, and optional replacement start/end time, room, and coach. A changed exception must replace at least one value. At most one exception may exist per session/date; it must reference a session occurring on that date inside the release validity period. The unchanged recurring session supplies original values. Replacement times, when both are known, must remain ordered. Moving a single occurrence to another day and adding one-off extra classes are outside the initial editor's scope; they must not be approximated by a recurring session that unintentionally repeats in later weeks.
 
 `notice` contains a stable key, title, message, inclusive start/end dates and `closed: boolean`. A closure takes precedence over a changed session. Schema validation checks local fields; publication preflight and the deployment workflow check cross-document release overlap, references, and room conflicts. API imports cannot bypass deployment validation.
 

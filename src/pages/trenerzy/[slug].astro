@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import {getContent} from '../../lib/content/repository';
+export function getStaticPaths(){return getContent().coaches.map(coach=>({params:{slug:coach.slug},props:{coach}}));}
+const {coach}=Astro.props;
+---
+<BaseLayout title={coach.name} description={coach.description} canonicalPath={`/trenerzy/${coach.slug}/`} image={coach.image?new URL(coach.image, 'https://wwfc.com.pl').href:undefined}><PageHead title={coach.name} intro={coach.description} eyebrow="Kadra WWFC"/><section class="section"><div class="wrap split"><div><h2>Spotkajmy się<br/>na treningu.</h2><p class="lead">Sprawdź terminy, poziomy i grupy wiekowe zajęć prowadzonych przez {coach.name}.</p><div class="actions"><a class="btn" href={`/grafik/?coach=${coach.slug}`}>Zobacz zajęcia ↗</a><a class="btn secondary" href="/pierwszy-trening/">Pierwszy trening</a></div></div>{coach.image&&<img src={coach.image} alt={coach.imageAlt ?? coach.name} width="640" height="640" loading="lazy"/>}</div></section></BaseLayout>

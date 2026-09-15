@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import {getContent} from '../../lib/content/repository';
+const c=getContent();
+---
+<BaseLayout title="Dyscypliny" description="Boks, MMA, BJJ, kickboxing, zapasy i zajęcia ruchowe. Poznaj dyscypliny WWFC." canonicalPath="/dyscypliny/"><PageHead title="Znajdź swój styl." intro="Sporty walki i zajęcia ruchowe. Wybierz, co chcesz trenować."/><section class="section"><div class="wrap three">{c.disciplines.map(d=><article class="path-card"><h2 style="font-size:2.4rem">{d.name}</h2><p>{d.description}</p><a href={`/dyscypliny/${d.slug}/`}>Poznaj zajęcia ↗</a></article>)}</div></section></BaseLayout>

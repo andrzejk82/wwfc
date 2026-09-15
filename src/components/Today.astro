@@ -1,0 +1,18 @@
+---
+import {getContent} from '../lib/content/repository';
+const c=getContent();
+---
+<div id="today"><p data-today-date class="eyebrow">Twój kolejny trening</p><h2>Jeszcze dziś<br/>na macie.</h2><div data-today-list><p>Sprawdź godziny zajęć w pełnym grafiku.</p></div><a class="btn secondary" href="/grafik/">Cały grafik ↗</a></div>
+<script is:inline type="application/json" id="today-data" set:html={JSON.stringify({releases:c.releases,disciplines:c.disciplines,coaches:c.coaches}).replaceAll('<','\\u003c')}/>
+<script>
+ import {upcomingToday,dateInWarsaw,selectRelease} from '../lib/schedule/schedule';
+ import {rooms} from '../lib/schedule/labels';
+ import type {Content} from '../lib/content/repository';
+ const data=JSON.parse(document.querySelector('#today-data')!.textContent!) as Content;
+ const target=document.querySelector('[data-today-list]')!;
+ function refresh(){const now=new Date();const date=dateInWarsaw(now);const list=upcomingToday(data.releases,now);
+ document.querySelector('[data-today-date]')!.textContent=new Intl.DateTimeFormat('pl-PL',{timeZone:'Europe/Warsaw',weekday:'long',day:'numeric',month:'long'}).format(now);
+ target.replaceChildren();if(!list.length){const p=document.createElement('p');p.textContent=selectRelease(data.releases,date).kind==='active'?'Na dziś to już wszystkie zajęcia. Znajdź swój następny trening w grafiku.':'Brak opublikowanego grafiku na dziś. Skontaktuj się z recepcją.';target.append(p);return;}
+ const ul=document.createElement('ul');ul.className='today-list';for(const o of list){const li=document.createElement('li');const time=document.createElement('strong');time.textContent=o.effective.startTime;const box=document.createElement('div');const title=document.createElement('strong');title.textContent=data.disciplines.find(d=>d.slug===o.effective.disciplineSlug)?.name??'';const sub=document.createElement('small');sub.textContent=`${data.coaches.find(c=>c.slug===o.effective.coachSlug)?.name} · ${rooms[o.effective.room]}`;box.append(title,sub);const a=document.createElement('a');a.href='/grafik/?discipline='+o.effective.disciplineSlug;a.textContent='Sprawdź grupę ↗';li.append(time,box,a);ul.append(li);}target.append(ul);
+ }refresh();setInterval(refresh,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+</script>

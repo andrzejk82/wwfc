@@ -1,0 +1,37 @@
+{
+  "name": "wwfc-sanity-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "test": "tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sanity/icons": "^3.7.4",
+    "@sanity/ui": "^3.1.0",
+    "react": "^19.2.2",
+    "react-dom": "^19.2.2",
+    "sanity": "6.13.2",
+    "styled-components": "^6.1.15",
+    "wwfc-website": "file:..",
+    "zod": "^4.5.4"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "smol-toml": "1.8.0",
+    "js-yaml@^3.0.0": "3.15.2",
+    "uuid": "11.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.2"
+  }
+}

@@ -452,7 +452,7 @@ git commit -m "feat: add WWFC visual foundation"
 - Produces: `ClassSessionSchema`, `SessionExceptionSchema`, `ScheduleReleaseSchema`, `ContentSnapshotSchema` i typy z `z.infer`.
 - `ClassSession`: `key, weekday, startTime, endTime, disciplineSlug, coachSlug, room, audience, ageMin, ageMax, level, sortOrder, archived`. Nie przechowuje statusu odwołania.
 - `SessionException`: `sessionKey, date, kind: 'cancelled' | 'changed', explanation, replacement?`; replacement może zawierać `startTime, endTime, room, coachSlug`.
-- `ScheduleRelease`: `id, title, validFrom, validTo, publicationNote, sessions[], exceptions[], notices[]`; obie daty wymagane i włącznie.
+- `ScheduleRelease`: `id, title, validFrom, validTo, publicationNote, sessions[], exceptions[], notices[]`; validFrom wymagane, validTo może być null; daty włącznie.
 - `ContentSnapshot`: `schemaVersion, source: 'fixture' | 'sanity', perspective: 'published' | 'drafts', fetchedAt, sourceCommit, settings, releases[], disciplines[], coaches[], pricing, faq[]`. Hash liczony z zapisanych bajtów snapshotu trafia do manifestu buildu.
 
 - [ ] **Step 1: Zapisz testy reguł lokalnych**
@@ -478,9 +478,9 @@ Dodaj przypadki nieistniejącej daty, wieku min > max, nieznanego klucza zajęć
 
 - [ ] **Step 2: Zaimplementuj release jako kolekcję i obiekty należące do wersji**
 
-`scheduleRelease` jest dokumentem kolekcji. `classSession`, `sessionException` i `notice` są typami object w jego tablicach, z własnymi `_key`. Mapowanie do domeny zamienia `_key` na `key`. Kopiowanie okresu tworzy niezależną tablicę sesji; wyjątki i zamknięcia nie są kopiowane automatycznie. Daty obowiązywania są włączne w Europe/Warsaw. Edytor nie ma skrótu do przenoszenia pojedynczych zajęć na inny dzień; ten wariant pozostaje poza zakresem.
+`scheduleRelease` jest dokumentem kolekcji. `classSession`, `sessionException` i `notice` są typami object w jego tablicach, z własnymi `_key`. Mapowanie do domeny zamienia `_key` na `key`. Kopiowanie okresu tworzy niezależną tablicę sesji; wyjątki i zamknięcia nie są kopiowane automatycznie. Daty obowiązywania są włączne w Europe/Warsaw; validTo może być null, co oznacza okres bez wskazanej daty końcowej. Edytor nie ma skrótu do przenoszenia pojedynczych zajęć na inny dzień; ten wariant pozostaje poza zakresem.
 
-`notice` ma `key, title, message, startDate, endDate, closed`. Zamknięcie ma pierwszeństwo przed zastępstwem. Zmiana godziny zachowuje oryginał w sesji, a nową wartość w replacement. Obie godziny po zastosowaniu replacement nadal muszą być poprawne i rosnące.
+`notice` ma `key, title, message, startDate, endDate, closed`. Zamknięcie ma pierwszeństwo przed zastępstwem. Zmiana godziny zachowuje oryginał w sesji, a nową wartość w replacement. startTime jest wymagane; endTime może być null, jeśli źródło nie podaje zakończenia. Gdy obie godziny są znane, muszą być poprawne i rosnące. Nie domyślaj czasu trwania.
 
 - [ ] **Step 3: Zaimplementuj walidację całego snapshotu**
 
@@ -603,7 +603,7 @@ Uwzględnij przejścia czasu letniego 2026-03-29 i zimowego 2026-10-25, koniec m
 
 Selektor nie dopuszcza nakładających się okresów. Rozwiń cykliczną sesję do konkretnej daty, zastosuj wyjątek, potem zamknięcie. Sortuj według daty → effective.startTime → effective.sortOrder; filtry trenera/sali dotyczą effective. `upcomingToday` wymaga aktywnego okresu i godziny rozpoczęcia późniejszej od lokalnej bieżącej godziny; rozpoczęte zajęcia nie są nadchodzące.
 
-Parser ignoruje nieznane wartości, odrzuca nieprawidłowe daty i nie modyfikuje danych CMS. Brak filtra day oznacza pełny tydzień; wybór dnia na mobile jest stanem widoku, nie ukrytym ograniczeniem desktopu. Rozszerz validateSnapshot o konflikty sal: dozwolony styk końca i początku, niedozwolone przecięcie przedziałów w tej samej sali, wyjątki i zamknięcia uwzględnione. Logika schedule konsumuje typy/schematy i nie importuje validateSnapshot, aby uniknąć cyklu modułów.
+Parser ignoruje nieznane wartości, odrzuca nieprawidłowe daty i nie modyfikuje danych CMS. Brak filtra day oznacza pełny tydzień; wybór dnia na mobile jest stanem widoku, nie ukrytym ograniczeniem desktopu. Rozszerz validateSnapshot o konflikty sal dla znanych przedziałów (brak endTime daje ostrzeżenie o niepełnej kontroli, nigdy domyślną godzinę): dozwolony styk końca i początku, niedozwolone przecięcie przedziałów w tej samej sali, wyjątki i zamknięcia uwzględnione. Logika schedule konsumuje typy/schematy i nie importuje validateSnapshot, aby uniknąć cyklu modułów.
 
 - [ ] **Step 4: Weryfikacja i commit**
 

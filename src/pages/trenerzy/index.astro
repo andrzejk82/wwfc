@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHead from '../../components/PageHead.astro';
+import {getContent} from '../../lib/content/repository';
+const c=getContent();
+---
+<BaseLayout title="Trenerzy" description="Poznaj prowadzących zajęcia w WWFC i sprawdź ich grupy w grafiku." canonicalPath="/trenerzy/"><PageHead title="Ludzie, z którymi trenujesz." intro="Poznaj prowadzących i znajdź ich zajęcia w grafiku."/><section class="section"><div class="wrap three">{c.coaches.map(x=><article class="coach-card">{x.image&&<img src={x.image} alt={x.imageAlt ?? x.name} width="640" height="640" loading="lazy"/>}<h2 style="font-size:2.4rem"><a href={`/trenerzy/${x.slug}/`}>{x.name}</a></h2><p>{x.description}</p><a href={`/grafik/?coach=${x.slug}`}>Sprawdź zajęcia ↗</a></article>)}</div></section></BaseLayout>

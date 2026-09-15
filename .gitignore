@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .astro/
+.sanity/
 .env
 .env.*
 !.env.example
@@ -12,4 +13,5 @@ dist/
 coverage/
 playwright-report/
 test-results/
+.lighthouseci/
 sanity-schema.json

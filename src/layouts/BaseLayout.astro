@@ -1,0 +1,47 @@
+---
+import '../styles/global.css';
+import headingLatin from '@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?url';
+import headingPolish from '../assets/fonts/barlow-polish-700.woff2?url';
+import bodyLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import bodyPolish from '../assets/fonts/inter-polish.woff2?url';
+import { buildPageMeta } from '../lib/seo/page-meta';
+import {getContent} from '../lib/content/repository';
+interface Props {title?:string;description?:string;canonicalPath:string;image?:string;robots?:string;}
+const production=process.env.DEPLOY_ENV==='production';
+const content=getContent();const settings=content.settings;
+const meta=buildPageMeta({...Astro.props,title:Astro.props.title||settings.defaultSeo?.title||settings.clubName||'WWFC',description:Astro.props.description||settings.defaultSeo?.description||'',image:Astro.props.image??settings.defaultSeo?.image,robots:Astro.props.robots??(production?'index,follow':'noindex,nofollow')});
+const nav=[['Grafik','/grafik/'],['Dyscypliny','/dyscypliny/'],['Trenerzy','/trenerzy/'],['Cennik','/cennik/'],['Kontakt','/kontakt/']];
+const tel=settings.phone?.replace(/[^\d+]/g,'');
+const address=[settings.address?.street,[settings.address?.postalCode,settings.address?.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+const previewDetails=[content.source,content.perspective,content.fetchedAt??content.retrievedOn].filter(Boolean).join(' · ');
+---
+<!doctype html><html lang="pl"><head>
+ <meta charset="UTF-8"/><meta name="viewport" content="width=device-width"/>
+ {[headingLatin,headingPolish,bodyLatin,bodyPolish].map(href=><link rel="preload" href={href} as="font" type="font/woff2" crossorigin="anonymous"/>)}
+ <meta name="description" content={meta.description}/><meta name="robots" content={meta.robots}/>
+ <link rel="canonical" href={meta.canonicalUrl}/><link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+ <meta property="og:type" content="website"/><meta property="og:title" content={meta.title}/><meta property="og:description" content={meta.description}/><meta property="og:url" content={meta.canonicalUrl}/><meta property="og:image" content={meta.image}/><meta name="twitter:card" content="summary_large_image"/>
+ <meta name="theme-color" content="#0a0a0a"/><title>{meta.title}</title>
+ <script is:inline>document.documentElement.classList.add('js');</script>
+</head><body>
+ <a class="skip-link" href="#main">Przejdź do treści</a>
+ {!production&&<div class="preview-bar">Wersja do przeglądu · {previewDetails}</div>}
+ {settings.announcement?.enabled&&(settings.announcement.title||settings.announcement.message)&&<aside class="preview-bar" style="background:var(--orange);color:var(--ink)" aria-label="Ogłoszenie klubu"><strong>{settings.announcement.title}</strong>{settings.announcement.title&&settings.announcement.message?' · ':''}{settings.announcement.message}</aside>}
+ <header class="site-header"><div class="wrap header-inner">
+  <a class="brand" href="/" aria-label="WWFC Warsaw West Fight Club — strona główna"><span class="brand-mark">WWFC</span><small>Warsaw West<br/>Fight Club</small></a>
+  <button class="menu-toggle" aria-expanded="false" aria-controls="navigation">Menu</button>
+  <nav class="nav" id="navigation" aria-label="Nawigacja główna">{nav.map(([label,path],i)=><a class={i===2?'nav-extra':undefined} href={path} aria-current={Astro.url.pathname===path?'page':undefined}>{label}</a>)}<a class="btn" href="/pierwszy-trening/">Zacznij trenować ↗</a></nav>
+ </div></header>
+ <main id="main"><slot/></main>
+ <footer class="site-footer"><div class="wrap"><div class="footer-top">
+  <div><a class="brand" href="/" aria-label="WWFC Warsaw West Fight Club — strona główna"><span class="brand-mark">WWFC</span><small>Warsaw West<br/>Fight Club</small></a><p style="margin-top:24px;max-width:310px;color:#aaa;font-size:.85rem">Twoje miejsce na macie.{address&&<><br/>{address}</>}</p></div>
+  <div class="footer-links"><p class="footer-label">Znajdź swoją grupę</p><a href="/grafik/">Grafik zajęć</a><a href="/dzieci/">Dzieci i młodzież</a><a href="/kobiety/">Zajęcia dla kobiet</a><a href="/pierwszy-trening/">Pierwszy trening</a><a href="/faq/">Pytania i odpowiedzi</a></div>
+  <div class="footer-links"><p class="footer-label">Jesteśmy w kontakcie</p>{settings.phone&&<a href={`tel:${tel}`}>{settings.phone}</a>}{settings.email&&<a href={`mailto:${settings.email}`}>{settings.email}</a>}<a href="/klub/">Poznaj klub</a>{settings.openingHours.length>0&&<span>{settings.openingHours.map((row,i)=><>{i>0&&<br/>}{row.label}: {row.hours}</>)}</span>}{settings.socialLinks.map(link=><a href={link.url} rel="me noopener noreferrer">{link.platform}</a>)}</div>
+ </div><div class="footer-bottom"><span>© {new Date().getFullYear()} Warsaw West Fight Club</span><span><a href="/polityka-prywatnosci/">Polityka prywatności</a> · <a href="/regulamin/">Regulamin</a></span></div></div></footer>
+ <div class="mobile-cta"><a class="btn secondary" href="/grafik/">Sprawdź grafik</a><a class="btn" href="/pierwszy-trening/">Pierwszy trening ↗</a></div>
+ <script>
+  const button=document.querySelector<HTMLButtonElement>('.menu-toggle');const nav=document.querySelector('#navigation');
+  button?.addEventListener('click',()=>{const open=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(open));nav?.classList.toggle('open',open);});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&button?.getAttribute('aria-expanded')==='true'){button.setAttribute('aria-expanded','false');nav?.classList.remove('open');button.focus();}});
+ </script>
+</body></html>
