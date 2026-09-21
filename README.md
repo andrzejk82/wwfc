@@ -1,6 +1,9 @@
 # WWFC
 
-Statyczna strona Astro z grafikiem zajęć i osobnym panelem Sanity. Docelowy hosting: Cloudflare Pages Direct Upload. Podgląd szkiców online jest wyłączony; Zero Trust nie jest wymagany w obecnym wariancie.
+Statyczna strona Astro z grafikiem zajęć i osobnym panelem Sanity, wdrożona na Cloudflare Pages Direct Upload. Podgląd szkiców online jest wyłączony; Zero Trust nie jest wymagany w obecnym wariancie.
+
+- [Strona do testów i odbioru](https://wwfc-production.pages.dev/)
+- [Panel redaktora Sanity — logowanie GitHub](https://wwfc-andrzejk82.sanity.studio/)
 
 ## Lokalnie
 
@@ -36,7 +39,7 @@ Workflow sprawdza kod; upload wymaga jawnego `DEPLOYMENT_ENABLED=true`, konfigur
 
 - [Instrukcja konfiguracji](docs/deployment-setup.md)
 - [Instrukcja redaktora](docs/editor-guide.md)
-- [Raport weryfikacji](docs/2026-09-15-completion-report.md)
+- [Raport wdrożenia](docs/2026-09-21-deployment-report.md)
 - [Mechanizm webhooków](workers/publishing/README.md)
 
-Projekt pozostaje w trakcie wdrożenia; formularz kontaktowy, newsletter, analityka i końcowy odbiór są dalszymi etapami planu.
+Strona i panel są dostępne online. Domena `wwfc.com.pl` pozostaje przy dotychczasowej stronie do czasu odbioru. Formularz kontaktowy, newsletter i analityka nie są aktywowane; dostępne są kontakt telefoniczny i e-mail.

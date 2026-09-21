@@ -1,6 +1,6 @@
 # Edycja WWFC w Sanity
 
-Projekt: `objbb93c`, dataset: `production`. Zaloguj się przez GitHub. Studio zapisuje zmiany automatycznie jako szkice.
+Otwórz [panel WWFC](https://wwfc-andrzejk82.sanity.studio/) i zaloguj się przez GitHub. Projekt: `objbb93c`, dataset: `production`. Studio zapisuje zmiany automatycznie jako szkice. Gotową stronę sprawdzisz pod adresem [wwfc-production.pages.dev](https://wwfc-production.pages.dev/).
 
 - **Grafiki:** edytuj wydanie grafiku, jego daty i zajęcia. Nie dopisuj nieznanych godzin zakończenia. Kolejne wydania nie mogą nakładać się datami.
 - **Trenerzy i dyscypliny:** aktualizuj opis, nazwę i zdjęcie. Uzupełnij opis alternatywny zdjęcia.
@@ -16,4 +16,4 @@ Zapis szkicu, publikacja w Sanity i wdrożenie strony to osobne etapy. Dopiero u
 
 Podgląd szkiców online jest wyłączony. Nie ma przycisków podglądu ani statusu Workera w Studio; Cloudflare Zero Trust nie jest używany.
 
-Przed pierwszym wdrożeniem upoważniona osoba z klubu musi sprawdzić aktualność grafiku, cennika, kontaktu, regulaminu i polityki prywatności, zatwierdzić odpowiednie pola oraz opublikować dokumenty. Import szkiców nie stanowi tego zatwierdzenia.
+Pierwszy zestaw treści został zatwierdzony przez właściciela i wdrożony 21.09.2026. Przy kolejnych zmianach sprawdzaj aktualność grafiku, cennika, kontaktu i dokumentów przed publikacją.
