@@ -5,7 +5,9 @@ const discipline=content.disciplines[0]?.slug,coach=content.coaches[0]?.slug;
 module.exports={ci:{
  collect:{startServerCommand:'npm run preview:pages',startServerReadyPattern:'Ready on',startServerReadyTimeout:60000,chromePath:chromium.executablePath(),numberOfRuns:3,
   url:['/','/grafik/',discipline?`/dyscypliny/${discipline}/`:'/dyscypliny/',coach?`/trenerzy/${coach}/`:'/trenerzy/','/cennik/','/kontakt/'].map(p=>'http://127.0.0.1:8788'+p),
-  settings:{chromeFlags:'--headless',skipAudits:process.env.DEPLOY_ENV==='production'?[]:['is-crawlable']}
+  // GitHub's disposable Linux runner blocks Chromium user namespaces.
+  // This flag affects only the browser testing our local build in Actions.
+  settings:{chromeFlags:process.env.GITHUB_ACTIONS==='true'?'--headless --no-sandbox':'--headless',skipAudits:process.env.DEPLOY_ENV==='production'?[]:['is-crawlable']}
  },
  assert:{assertions:{
   'categories:performance':['error',{minScore:.9}],
