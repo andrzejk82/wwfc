@@ -1,59 +1,36 @@
-## Obowiązująca decyzja: bez podglądu online i Zero Trust
+# Uruchomienie WWFC — stan 21.09.2026
 
-Na polecenie właściciela wyłączono podgląd szkiców online. Nie aktywujemy Zero Trust ani nie podajemy karty. Projekt wwfc-drafts pozostaje pusty i nieużywany. Studio korzysta ze standardowego publikowania Sanity; przyciski podglądu, preflightu Access i statusu Workera nie są podłączone. Cały snapshot produkcyjny nadal musi przejść walidację i testy CI; status wdrożenia sprawdzamy w GitHub Actions. Workflow oraz skrypt uploadu odrzucają draft-preview. Podpisany webhook /cms i callback /complete nie wymagają Zero Trust. Opisy ochrony podglądu poniżej są historyczne i nie są krokami bieżącej konfiguracji.
+## Obowiązujący wariant
 
-# Uruchomienie WWFC — Astro, Sanity i Cloudflare
+Astro + Sanity Free + Cloudflare Pages Direct Upload. Podgląd szkiców online jest wyłączony; Zero Trust nie jest potrzebny. Projekt `wwfc-drafts` pozostaje pusty. Treści zatwierdza i publikuje upoważniona osoba w Sanity Studio.
 
-Stan 15.09.2026: kod mechanizmu publikacji jest przygotowany lokalnie. Konta, domeny, sekrety i rzeczywista próba publikacji wymagają konfiguracji. Testy lokalne nie oznaczają wdrożenia.
+## Skonfigurowane połączenia
 
-## Kolejność konfiguracji
+- Sanity: projekt `objbb93c`, publiczny dataset `production`.
+- Repozytorium: `andrzejk82/wwfc`, workflow `publish.yml`, gałąź `main`.
+- GitHub App: `wwfc-publishing-andrzejk82`, ID `4956537`, instalacja `161995249`; Actions write i Metadata read, wyłącznie repozytorium WWFC.
+- Cloudflare: konto `118177073d312aa29373bd161d6131b0`, Pages `wwfc-production`.
+- Worker: `https://wwfc-publishing.andrzejkob.workers.dev`. Włączono workers.dev wyłącznie dla odbiornika webhooków. Adresy podglądowe Workera są wyłączone. Ścieżki redaktora pozostają niedostępne bez konfiguracji Access.
+- Webhook Sanity `WWFC production publication`, ID `GDMb0xaaiFNu2pKD`: create/update/delete opublikowanych dokumentów, bez szkiców i wersji. Przesyła tylko identyfikatory i metadane zdarzenia.
 
-1. Udostępnić repozytorium `andrzejk82/wwfc` i umieścić sprawdzony kod na `main`. Lokalna gałąź robocza to `codex/wwfc-redesign`. Chronić `main`; sekrety udostępniać wyłącznie zaufanym zadaniom.
-2. W Cloudflare utworzyć dwa osobne projekty Pages **Direct Upload**: stronę produkcyjną oraz podgląd szkiców. Nazwy ustala właściciel. Nie włączać równoległego automatycznego buildu z Git.
-3. Najpierw umieścić w podglądzie publiczny, pusty materiał kontrolny. Skonfigurować Access dla domeny projektu, aliasu `main`, wszystkich adresów poszczególnych wdrożeń i każdej własnej domeny. Sprawdzić odmowę dostępu bez logowania. Nie przesyłać szkiców przed tym odbiorem.
-4. Skonfigurować Worker według `workers/publishing/README.md`: własna domena, SQLite Durable Object, GitHub App i sekrety. Ścieżki redaktora zabezpieczyć Access. `/cms` weryfikuje podpis Sanity, `/complete` osobny sekret CI. Wyłączyć `workers.dev` i adresy podglądowe Workera.
-5. Utworzyć środowiska GitHub `production` i `draft-preview`. Wprowadzić zmienne i sekrety z tabel poniżej. Dopiero po konfiguracji ustawić `DEPLOYMENT_ENABLED=true`.
-6. Udostępnić Studio pod HTTPS. Ustawić `SANITY_STUDIO_PUBLICATION_URL` na domenę Workera i tę samą domenę Studio jako `STUDIO_ORIGIN` Workera. Dopisać adres Studio do CORS Sanity. `SANITY_STUDIO_DRAFT_PREVIEW_ENABLED=true` dopiero po odbiorze Access.
-7. Skonfigurować webhook Sanity dla opublikowanych dokumentów; filtr i projekcja są w README Workera. Sprawdzić create/update/delete oraz duplikat zdarzenia.
-8. Wykonać próbę edycji, walidacji, publikacji, błędu, ponowienia i rollbacku. Porównać `/version.json` z manifestem CI. Dopiero potem przełączać domenę klubu.
+Sekrety Workera: `GITHUB_APP_PRIVATE_KEY` (PKCS#8), `SANITY_WEBHOOK_SECRET`, `PUBLICATION_CALLBACK_SECRET`. GitHub przechowuje `CLOUDFLARE_API_TOKEN` i ten sam `PUBLICATION_CALLBACK_SECRET`. Wartości sekretów nie trafiają do repozytorium.
 
-## Zmienne GitHub
+Zmienne GitHub: `CLOUDFLARE_ACCOUNT_ID`, `PRODUCTION_PAGES_PROJECT_NAME`, `PUBLICATION_RECEIVER_URL`, `DEPLOYMENT_ENABLED=true`. `SCHEDULED_PUBLISH_ENABLED` pozostaje wyłączone. Na czas pierwszego wdrożenia `ALLOW_FIRST_DEPLOYMENT=true`; po sukcesie należy ustawić `false`.
 
-| Zmienna | Znaczenie |
-|---|---|
-| `DEPLOYMENT_ENABLED` | `true` dopiero po konfiguracji |
-| `SCHEDULED_PUBLISH_ENABLED` | Domyślnie wyłączone; włączyć po ocenie limitu minut Actions |
-| `PUBLICATION_RECEIVER_URL` | HTTPS Workera |
-| `CLOUDFLARE_ACCOUNT_ID` | Identyfikator konta |
-| `PRODUCTION_PAGES_PROJECT_NAME` | Projekt produkcji |
-| `DRAFT_PAGES_PROJECT_NAME` | Inny projekt dla szkiców |
-| `DRAFT_PREVIEW_PROTECTION_VERIFIED` | `true` dopiero po odbiorze ochrony wszystkich adresów |
-| `PREVIEW_PROTECTION_URLS` | Tablica JSON adresów: projekt, `main`, istniejące wdrożenie kontrolne oraz własne domeny |
-| `ALLOW_FIRST_DEPLOYMENT` | Jednorazowo `true` po zatwierdzeniu pierwszego wdrożenia; później `false` |
+## Publikowanie
 
-Próby HTTP wykrywają brak ochrony znanych adresów, ale nie zastępują sprawdzenia polityki obejmującej przyszłe adresy wdrożeń.
+1. Redaktor zatwierdza aktualność grafiku, cennika, kontaktu i treści prawnych w Studio oraz publikuje dokumenty.
+2. Sanity wysyła podpisane zdarzenie do `/cms`.
+3. Worker uruchamia GitHub Actions. Status sprawdzamy w Actions; Studio nie ma przycisków podglądu ani statusu Workera.
+4. CI pobiera świeży snapshot opublikowanych dokumentów, waliduje go, buduje i testuje stronę, a następnie przesyła dokładnie przetestowany artefakt do Pages.
+5. Po wdrożeniu test HTTP i porównanie `version.json` potwierdzają wersję. Błąd testu powoduje rollback, jeżeli istnieje wcześniejsze wdrożenie.
 
-## Sekrety GitHub
+Brak zatwierdzenia lub niepełne treści zatrzymują budowę. Sam zapis/publikacja w Sanity nie oznacza aktualizacji strony.
 
-| Sekret | Zakres |
-|---|---|
-| `SANITY_API_READ_TOKEN` | Odczyt projektu `objbb93c`, dataset `production`; szkice tylko w chronionym środowisku |
-| `CLOUDFLARE_API_TOKEN` | Pages w wybranym koncie |
-| `PUBLICATION_CALLBACK_SECRET` | Wspólny z Workerem; minimum 32 znaki |
-| `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` | Konto techniczne wyłącznie do testów chronionego podglądu |
+## Pozostały odbiór
 
-Nie wpisywać sekretów w pliki ani rozmowę. Sekrety Workera i GitHub App opisano osobno w README Workera.
+Właściciel potwierdził aktualność grafiku i cennika oraz polecił zachować dokładnie dotychczasowy odnośnik polityki, po poinformowaniu, że prowadzi on do regulaminu WWTC. Zachowano również dwa odnośniki regulaminów WWFC z dotychczasowej strony. Zatwierdzony zestaw 43 dokumentów i 81 zajęć przeszedł walidację produkcyjną. Domena klubu nie została przełączona. Wynik pierwszej publikacji należy potwierdzić w GitHub Actions i na Pages.
 
-## Zasady publikacji
+## Dostęp i koszty
 
-CI pobiera świeży snapshot po wejściu do kolejki. Buduje stronę, testuje ją i sprawdza Lighthouse, następnie zapisuje skrót całego katalogu `dist`. Upload odrzuca zmienione pliki; nie wykonuje ponownego buildu. Identyfikator źródła, commit i skrót snapshotu trafiają do `version.json`.
-
-Produkcja wymaga opublikowanych i zatwierdzonych danych. Materiał źródłowy i szkice nie przechodzą tej bramki. W podglądzie logi buildu i Lighthouse pozostają na runnerze i nie są publikowane jako artefakty. Pierwsze wdrożenie nie ma wcześniejszej wersji do rollbacku — wymaga osobnego odbioru.
-
-Kolejka ma limit 48 godzin oczekiwania; przejęte zadanie wygasa po 30 minutach bez zakończenia. GitHub job ma limit 25 minut. Powtórzony callback przejęcia nie uruchamia drugiego uploadu. Nieudany test wdrożenia uruchamia powrót do poprzedniej wersji, o ile taka istnieje.
-
-## Koszty i dalsze zadania
-
-Pozostajemy przy planach darmowych. Harmonogram publikacji jest domyślnie wyłączony, żeby nie zużywać cyklicznie minut Actions. Przed uruchomieniem sprawdzić limity kont i nie aktywować płatnych planów. Sam Docker nie jest potrzebny.
-
-Uruchomienie produkcji nadal wymaga zatwierdzenia treści klubu i dokumentów prawnych. Formularz kontaktowy, newsletter i analityka pozostają osobnymi zadaniami planu. Ten etap nie stanowi odbioru całego projektu.
+Pozostajemy na planach darmowych. Nie aktywowano Zero Trust, płatnego Workers ani automatycznych publikacji co 30 minut. Odczyt opublikowanych danych publicznego datasetu nie wymaga tokena Sanity. Sekret webhooka i sekret callbacku są oddzielne. Szczegóły protokołu znajdują się w `workers/publishing/README.md`.

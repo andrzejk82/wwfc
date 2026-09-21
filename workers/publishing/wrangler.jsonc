@@ -3,10 +3,17 @@
   "name": "wwfc-publishing",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-08",
-  "workers_dev": false,
+  "account_id": "118177073d312aa29373bd161d6131b0",
+  "workers_dev": true,
   "preview_urls": false,
   "observability": {"enabled": false},
   "durable_objects": {"bindings": [{"name": "PUBLICATIONS", "class_name": "PublicationCoordinator"}]},
   "migrations": [{"tag": "v1", "new_sqlite_classes": ["PublicationCoordinator"]}],
-  "vars": {"DRAFT_PREVIEW_ENABLED": "false"}
+  "vars": {
+    "DRAFT_PREVIEW_ENABLED": "false",
+    "GITHUB_REPOSITORY": "andrzejk82/wwfc",
+    "GITHUB_APP_ID": "4956537",
+    "GITHUB_INSTALLATION_ID": "161995249",
+    "PRODUCTION_PAGES_PROJECT": "wwfc-production"
+  }
 }

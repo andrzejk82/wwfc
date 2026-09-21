@@ -6,13 +6,37 @@ afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers()});
 async function githubSetup(){
  const state=setup();const {privateKey}=await generateKeyPair('RS256',{extractable:true});state.env.GITHUB_APP_PRIVATE_KEY=await exportPKCS8(privateKey);
  let dispatches=0;
- const fetch=vi.fn(async(url:string)=>{
+ const fetch=vi.fn(async(url:string,_init?:RequestInit)=>{
   if(url.includes('/access_tokens'))return Response.json({token:'installation-test-token'});
   if(url.includes('/dispatches')){dispatches++;return new Response(null,{status:204})}
   throw Error('Unexpected outbound request');
  });vi.stubGlobal('fetch',fetch);return {...state,dispatches:()=>dispatches,fetch};
 }
 describe('durable request lifecycle',()=>{
+ it('dispatches on Cloudflare where redirect:error is unsupported and never follows redirects',async()=>{
+  const state=await githubSetup();
+  state.fetch.mockImplementation(async(url,init)=>{
+   if(init?.redirect==='error')throw new TypeError('Invalid redirect value');
+   expect(init?.redirect).toBe('manual');
+   if(url.includes('/access_tokens'))return Response.json({token:'installation-test-token'});
+   return new Response(null,{status:204});
+  });
+  const publication:any=await(await state.coordinator.fetch(internal('/cms',event))).json();
+  await state.coordinator.alarm();
+  expect(state.fetch.mock.calls.some(([url])=>url.includes('/dispatches'))).toBe(true);
+  expect((await state.storage.get<any>(`request:${publication.requestId}`)).dispatch).toBe('sent');
+ });
+ it('does not dispatch or forward credentials when GitHub token endpoint redirects',async()=>{
+  const state=await githubSetup();
+  state.fetch.mockImplementation(async()=>{
+   return new Response(null,{status:302,headers:{location:'https://untrusted.example/'}});
+  });
+  await state.coordinator.fetch(internal('/cms',event));
+  await state.coordinator.alarm();
+  expect(state.fetch).toHaveBeenCalledTimes(1);
+  expect(state.fetch.mock.calls[0][0]).toContain('/access_tokens');
+  expect(state.fetch.mock.calls[0][1]?.redirect).toBe('manual');
+ });
  it('keeps queued work for 48 hours but expires a stalled running claim after 30 minutes',async()=>{
   const {coordinator,storage}=setup();const publication:any=await(await coordinator.fetch(internal('/cms',event))).json();
   const record:any=await storage.get(`request:${publication.requestId}`);

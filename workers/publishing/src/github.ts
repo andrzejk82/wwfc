@@ -6,7 +6,9 @@ function configuration(env:Env){
  return env.GITHUB_REPOSITORY;
 }
 async function github(path:string,token:string,body?:unknown){
- return fetch(`https://api.github.com${path}`,{method:body===undefined?'GET':'POST',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'wwfc-publishing'},...(body===undefined?{}:{body:JSON.stringify(body)})});
+ // Workers supports manual redirects; callers reject non-success responses.
+ // Never follow a redirect with the App JWT or installation token.
+ return fetch(`https://api.github.com${path}`,{method:body===undefined?'GET':'POST',redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'wwfc-publishing'},...(body===undefined?{}:{body:JSON.stringify(body)})});
 }
 async function installationToken(env:Env){
  const repository=configuration(env);

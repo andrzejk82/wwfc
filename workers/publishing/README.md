@@ -8,7 +8,10 @@ receiver bundles the shared content query and pure validator from `src/lib/conte
 
 ## Configuration
 
-Configure one Worker custom domain. `workers_dev` and preview URLs remain disabled.
+The current deployment uses `https://wwfc-publishing.andrzejkob.workers.dev`.
+`workers_dev` is enabled for the signed webhook and authenticated CI callback;
+preview URLs remain disabled. This endpoint does not serve website drafts.
+Editor paths remain closed because no Studio origin or Access configuration is set.
 The `PUBLICATIONS` binding uses one SQLite Durable Object, with the checked-in v1
 migration. SQLite Durable Objects are available on Workers Free; account limits
 still apply. No secrets, accounts, routes or Access policies are supplied by this
