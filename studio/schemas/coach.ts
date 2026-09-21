@@ -6,6 +6,7 @@ export const coach = defineType({
     defineField({name: 'name', title: 'Imię i nazwisko', type: 'string', validation: (rule) => rule.required()}),
     defineField({name: 'slug', title: 'Adres', type: 'slug', options: {source: 'name', maxLength: 96}, validation: (rule) => rule.required()}),
     defineField({name: 'description', title: 'Opis', type: 'text', rows: 6}),
+    defineField({name: 'sortOrder', title: 'Kolejność', type: 'number', description: 'Niższa liczba wyświetla trenera wcześniej. Profile bez zdjęcia trafiają na koniec.', validation: (rule) => rule.integer().min(0)}),
     defineField({name: 'image', title: 'Zdjęcie', type: 'image', options: {hotspot: true}, fields: [defineField({name: 'alt', title: 'Tekst alternatywny', type: 'string', validation: (rule) => rule.required()})]}),
   ],
   preview: {select: {title: 'name', media: 'image'}},

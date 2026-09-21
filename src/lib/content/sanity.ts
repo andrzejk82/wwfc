@@ -19,7 +19,7 @@ export const SANITY_CONTENT_QUERY=`{
    name, "slug": slug.current, "description": coalesce(description, ""),
    defined(image.asset) => {"image": image.asset->url + "?w=640&h=640&fit=crop&auto=format", "imageAlt": image.alt}
  },
- "coaches": *[_type == "coach"] | order(name){
+ "coaches": *[_type == "coach"] | order(defined(image.asset) desc, coalesce(sortOrder, 9999) asc, name asc){
    name, "slug": slug.current, "description": coalesce(description, ""),
    defined(image.asset) => {"image": image.asset->url + "?w=640&h=640&fit=crop&auto=format", "imageAlt": image.alt}
  },
