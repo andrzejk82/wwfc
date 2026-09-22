@@ -1,0 +1,40 @@
+---
+interface Props {videoId:string;title:string;poster:string;}
+const {videoId,title,poster}=Astro.props;
+---
+<div class="video-player" data-video-id={videoId} data-video-title={title}>
+ <button class="video-start" type="button" aria-label={`Odtwórz film: ${title}`}>
+  <img src={poster} alt="" width="1280" height="720" loading="lazy"/>
+  <span class="play-label"><span aria-hidden="true">▶</span> Obejrzyj film</span>
+ </button>
+</div>
+<p class="video-note">Po uruchomieniu film odtwarza YouTube. <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer">Otwórz w YouTube ↗</a></p>
+<script>
+ document.querySelectorAll<HTMLElement>('.video-player').forEach(container=>{
+  container.querySelector('button')?.addEventListener('click',()=>{
+   const id=container.dataset.videoId;
+   if(!id||! /^[A-Za-z0-9_-]{11}$/.test(id))return;
+   const iframe=document.createElement('iframe');
+   iframe.src=`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+   iframe.title=container.dataset.videoTitle??'Film WWFC';
+   iframe.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
+   iframe.allowFullscreen=true;
+   iframe.referrerPolicy='strict-origin-when-cross-origin';
+   container.replaceChildren(iframe);
+   iframe.focus();
+  },{once:true});
+ });
+</script>
+<style>
+ .video-player{aspect-ratio:16/9;background:#151515;position:relative;overflow:hidden}
+ .video-start{display:block;width:100%;height:100%;border:0;padding:0;background:transparent;color:#fff;position:relative}
+ .video-start img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+ .video-start:hover img{transform:scale(1.025)}
+ .play-label{position:absolute;inset:auto auto 28px 28px;display:flex;align-items:center;gap:16px;padding:16px 22px;background:#0a0a0a;font-weight:700;font-size:.9rem}
+ .play-label span{color:#ff775d;font-size:1.5rem}
+ .video-start:focus-visible{outline:3px solid #ff775d;outline-offset:-5px}
+ .video-player :global(iframe){width:100%;height:100%;border:0;display:block}
+ .video-note{font-size:.75rem;margin:14px 0 0;line-height:1.6}
+ @media(max-width:767px){.play-label{left:12px;bottom:12px;padding:10px 14px;font-size:.8rem}}
+ @media(prefers-reduced-motion:reduce){.video-start img{transition:none}.video-start:hover img{transform:none}}
+</style>
