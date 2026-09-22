@@ -15,3 +15,17 @@ const address=[c.settings.address?.street,c.settings.address?.city].filter(Boole
  <section class="section rule"><div class="wrap split"><div><p class="eyebrow">Przed pierwszą wizytą</p><h2>Masz pytania?<br/>Zacznij tutaj.</h2><a href="/faq/">Wszystkie odpowiedzi ↗</a></div><div class="faq">{c.faq.slice(0,4).map(item=><details><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div></div></section>
  <section class="section orange"><div class="wrap section-heading"><div><p class="eyebrow">{address}</p><h2>Do zobaczenia<br/>na treningu.</h2></div><a class="btn secondary" href="/kontakt/">Znajdź nas ↗</a></div></section>
 </BaseLayout>
+
+<style>
+ .hero {
+  background-image: linear-gradient(90deg, rgba(10,10,10,.62), rgba(10,10,10,.25)), url('/images/club-hero-1600.webp');
+  background-size: cover;
+  background-position: center;
+ }
+ @media (max-width: 767px) {
+  .hero {
+   background-image: linear-gradient(rgba(10,10,10,.55), rgba(10,10,10,.72)), url('/images/club-hero-800.webp');
+   background-position: 65% top;
+  }
+ }
+</style>
