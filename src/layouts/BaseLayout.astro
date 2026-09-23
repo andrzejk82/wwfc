@@ -28,7 +28,7 @@ const previewDetails=[content.source,content.perspective,content.fetchedAt??cont
  {!production&&<div class="preview-bar">Wersja do przeglądu · {previewDetails}</div>}
  {settings.announcement?.enabled&&(settings.announcement.title||settings.announcement.message)&&<aside class="preview-bar" style="background:var(--orange);color:var(--ink)" aria-label="Ogłoszenie klubu"><strong>{settings.announcement.title}</strong>{settings.announcement.title&&settings.announcement.message?' · ':''}{settings.announcement.message}</aside>}
  <header class="site-header"><div class="wrap header-inner">
-  <a class="brand" href="/" aria-label="WWFC Warsaw West Fight Club — strona główna"><span class="brand-mark">WWFC</span><small>Warsaw West<br/>Fight Club</small></a>
+  <a class="brand" href="/" aria-label="WWFC Warsaw West Fight Club — strona główna"><img class="header-logo" src="/images/wwfc-logo.png" alt="" width="265" height="291"/></a>
   <button class="menu-toggle" aria-expanded="false" aria-controls="navigation">Menu</button>
   <nav class="nav" id="navigation" aria-label="Nawigacja główna">{nav.map(([label,path],i)=><a class={i===2?'nav-extra':undefined} href={path} aria-current={Astro.url.pathname===path?'page':undefined}>{label}</a>)}<a class="btn" href="/pierwszy-trening/">Zacznij trenować ↗</a></nav>
  </div></header>
