@@ -1,0 +1,37 @@
+---
+interface Props {src:string;poster:string;title:string;width:number;height:number;}
+const {src,poster,title,width,height}=Astro.props;
+---
+<div class="local-video" data-src={src} data-title={title} style={`aspect-ratio:${width}/${height}`}>
+ <button type="button" class="local-video-start" aria-label={`Odtwórz film: ${title}`}>
+  <img src={poster} alt="" width={width} height={height} loading="lazy"/>
+  <span class="local-video-label"><span aria-hidden="true">▶</span> Obejrzyj film</span>
+ </button>
+ <noscript><p><a href={src}>Otwórz film: {title}</a></p></noscript>
+</div>
+<script>
+ document.querySelectorAll<HTMLElement>('.local-video').forEach(container=>{
+  container.querySelector('button')?.addEventListener('click',()=>{
+   const src=container.dataset.src;
+   if(!src)return;
+   const video=document.createElement('video');
+   video.src=src;
+   video.controls=true;
+   video.playsInline=true;
+   video.preload='metadata';
+   video.setAttribute('aria-label',container.dataset.title??'Film WWFC');
+   container.replaceChildren(video);
+   video.focus();
+   void video.play().catch(()=>{});
+  },{once:true});
+ });
+</script>
+<style>
+ .local-video{position:relative;background:#111;overflow:hidden;width:100%;max-width:440px;margin-inline:auto}
+ .local-video-start{display:block;width:100%;height:100%;padding:0;border:0;background:#111;color:#fff;position:relative}
+ .local-video-start img{width:100%;height:100%;object-fit:cover}
+ .local-video-label{position:absolute;left:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;padding:10px 12px;background:#0a0a0a;font-size:.75rem;font-weight:700;text-transform:uppercase}
+ .local-video-label span{color:#ff775d;font-size:1.15rem}
+ .local-video-start:focus-visible{outline:3px solid #ff775d;outline-offset:-5px}
+ .local-video :global(video){width:100%;height:100%;display:block;object-fit:contain;background:#111}
+</style>

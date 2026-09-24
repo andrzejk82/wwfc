@@ -1,0 +1,31 @@
+---
+interface Props {showLink?:boolean;}
+const {showLink=true}=Astro.props;
+const features=[
+ {value:'1 000 m²',label:'przestrzeni',description:'Obiekt zaprojektowany z myślą o sportach walki i treningu funkcjonalnym. Jest miejsce na zajęcia grupowe, sprzęt i swobodny ruch.',image:'/images/club-space.webp',alt:'Duża sala treningowa WWFC z oktagonem'},
+ {value:'Pełnowymiarowy oktagon',label:'do MMA',description:'Oktagon służy treningom MMA i zajęciom specjalistycznym. Pozwala ćwiczyć w warunkach zbliżonych do tych, w których trenują zawodnicy.',image:'/images/club-octagon.webp',alt:'Wnętrze pełnowymiarowego oktagonu WWFC'},
+ {value:'Ponad 400 m² maty',label:'do treningu',description:'Rozległa powierzchnia maty daje przestrzeń do ćwiczenia technik uderzanych i chwytanych, również podczas zajęć grupowych.',image:'/images/club-mat.webp',alt:'Widok z góry na matę treningową WWFC'}
+];
+---
+<section class="section club-highlights rule" aria-labelledby="club-heading">
+ <div class="wrap">
+  <div class="section-heading"><div><p class="eyebrow">Warsaw West Fight Club</p><h2 id="club-heading">Poznaj klub.</h2></div><p class="lead">Miejsce na pierwszy krok i na kolejne lata treningu. Zobacz przestrzeń, w której spotykamy się na macie.</p></div>
+  <div class="club-features">
+   {features.map(feature=><article class="club-feature"><img src={feature.image} alt={feature.alt} width={feature.image.includes('space')?1400:760} height={feature.image.includes('space')?933:507} loading="lazy"/><div class="club-feature-copy"><h3>{feature.value}</h3><p class="club-feature-label">{feature.label}</p><p>{feature.description}</p></div></article>)}
+  </div>
+  {showLink&&<a class="btn secondary" href="/klub/">Więcej o klubie ↗</a>}
+ </div>
+</section>
+<style>
+ .club-highlights .section-heading .lead{max-width:430px;margin:0}
+ .club-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-bottom:30px}
+ .club-feature{border:1px solid var(--line);background:#ece9e2}
+ .club-feature:first-child{grid-column:1/-1;display:grid;grid-template-columns:1.3fr .7fr}
+ .club-feature img{width:100%;height:300px;object-fit:cover}
+ .club-feature:first-child img{height:400px}
+ .club-feature-copy{padding:26px}
+ .club-feature h3{font-size:clamp(2rem,3vw,3.4rem);margin:0 0 5px}
+ .club-feature-label{font-weight:700;text-transform:uppercase;font-size:.72rem;letter-spacing:.1em;margin:0 0 22px}
+ .club-feature-copy p:last-child{font-size:.9rem;max-width:420px;margin:0}
+ @media(max-width:767px){.club-features{grid-template-columns:1fr;gap:16px}.club-feature:first-child{grid-column:auto;display:block}.club-feature img,.club-feature:first-child img{height:220px}.club-feature-copy{padding:20px}.club-feature-label{margin-bottom:12px}}
+</style>
