@@ -7,3 +7,14 @@
 
 .header-logo{width:auto;height:76px;padding-block:6px;object-fit:contain}
 @media(max-width:767px){.header-logo{height:68px}}
+
+@media(min-width:768px){
+ :root{scroll-padding-top:60px}
+ .site-header{position:sticky;top:0;z-index:20}
+ .header-inner{min-height:0}
+ .header-logo{height:52px;padding-block:0}
+}
+@media(min-width:768px) and (max-width:1050px){
+ .nav{gap:14px}
+ .nav .nav-extra{display:block}
+}
