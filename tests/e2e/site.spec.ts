@@ -1,5 +1,31 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+test('desktop navigation remains compact and available after scrolling',async({page},testInfo)=>{
+ test.skip((testInfo.project.use.viewport?.width??0)<768,'Desktop navigation only');
+ await page.goto('/');
+ await page.evaluate(()=>window.scrollTo(0,1200));
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(1000);
+ const header=page.locator('.site-header');
+ await expect.poll(async()=>Math.round((await header.boundingBox())?.y??-1)).toBe(0);
+ const headerBox=await header.boundingBox();
+ const navBox=await page.getByRole('navigation',{name:'Nawigacja główna'}).boundingBox();
+ expect(headerBox?.height??0).toBeLessThanOrEqual(56);
+ expect((navBox?.y??0)-(headerBox?.y??0)).toBeLessThanOrEqual(4);
+ expect((headerBox?.y??0)+(headerBox?.height??0)-(navBox?.y??0)-(navBox?.height??0)).toBeLessThanOrEqual(4);
+ const navigation=page.getByRole('navigation',{name:'Nawigacja główna'});
+ await expect(navigation.getByRole('link',{name:'Trenerzy'})).toBeVisible();
+ const logoRight=(await page.locator('.brand').first().boundingBox())?.x??0;
+ const logoWidth=(await page.locator('.brand').first().boundingBox())?.width??0;
+ expect((await navigation.boundingBox())?.x??0).toBeGreaterThanOrEqual(logoRight+logoWidth);
+});
+test('mobile header scrolls away while training actions stay available',async({page},testInfo)=>{
+ test.skip((testInfo.project.use.viewport?.width??1440)>=768,'Mobile navigation only');
+ await page.goto('/');
+ await page.evaluate(()=>window.scrollTo(0,1200));
+ await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(1000);
+ expect((await page.locator('.site-header').boundingBox())?.y??0).toBeLessThan(0);
+ await expect(page.locator('.mobile-cta').getByRole('link',{name:'Sprawdź grafik'})).toBeInViewport();
+});
 test('navigation, layout and accessible pages',async({page},testInfo)=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  for(const path of ['/','/grafik/','/dyscypliny/boks/','/trenerzy/norbert-dabrowski/','/cennik/','/pierwszy-trening/','/kontakt/']){
