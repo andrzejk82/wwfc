@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHead from '../components/PageHead.astro';
-import VideoPlayer from '../components/VideoPlayer.astro';
+import LocalVideo from '../components/LocalVideo.astro';
+import ClubHighlights from '../components/ClubHighlights.astro';
 import {getContent} from '../lib/content/repository';
 export function getStaticPaths(){return ['pierwszy-trening','cennik','dzieci','kobiety','klub','kontakt','faq','polityka-prywatnosci','regulamin'].map(page=>({params:{page}}));}
 const page=Astro.params.page!;const c=getContent();
@@ -31,5 +32,5 @@ const mapQuery=encodeURIComponent([settings.clubName,settings.address?.street,ad
  {page==='faq'&&<div class="faq content">{c.faq.map(item=><details><summary>{item.question}</summary><p>{item.answer}</p></details>)}<div class="actions"><a class="btn" href="/kontakt/">Masz inne pytanie? Napisz ↗</a></div></div>}
  {(page==='regulamin'||page==='polityka-prywatnosci')&&<div class="content">{c.legal.approved?<div style="white-space:pre-wrap;line-height:1.8">{legalLines.map(line=><>{line.isUrl?<a href={line.text} target="_blank" rel="noopener noreferrer">Otwórz dokument ↗</a>:line.text}<br/></>)}</div>:<><p class="note">Dokument oczekuje na treść zatwierdzoną przez operatora WWFC. Ta wersja strony służy do przeglądu i nie jest gotowa do publikacji produkcyjnej.</p><p>W tej wersji nie uruchomiono formularza zbierającego dane, newslettera ani analityki. Kontakt z recepcją jest dostępny telefonicznie i przez program pocztowy.</p><a href="/kontakt/">Dane kontaktowe klubu ↗</a></>}</div>}
  </div></section>
- {page==='klub'&&<section class="section rule"><div class="wrap"><div class="section-heading"><h2>Od projektu<br/>do otwarcia.</h2><p class="lead">Archiwalna wizualizacja wnętrza klubu przygotowana przed otwarciem. Film przedstawia projekt, a nie aktualny spacer po obiekcie.</p></div><VideoPlayer videoId="U33iUOQjqiQ" title="Archiwalna wizualizacja projektu WWFC" poster="/images/club-design-film.webp" /></div></section>}
+ {page==='klub'&&<><ClubHighlights showLink={false}/><section class="section rule club-film-section"><div class="wrap split"><div><p class="eyebrow">Ludzie i miejsce</p><h2>Poznaj klub od środka.</h2><p class="lead">Zobacz WWFC w ruchu: trening, trenerów i przestrzeń klubu. Film uruchomisz wtedy, kiedy chcesz.</p></div><LocalVideo src="/images/club-film.mp4" poster="/images/club-film-poster.webp" title="Poznaj WWFC" width={540} height={960}/></div></section></>}
 </BaseLayout>
