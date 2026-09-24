@@ -9,9 +9,9 @@
 @media(max-width:767px){.header-logo{height:68px}}
 
 @media(min-width:768px){
- :root{scroll-padding-top:60px}
+ :root{scroll-padding-top:70px}
  .site-header{position:sticky;top:0;z-index:20}
- .header-inner{min-height:0}
+ .header-inner{min-height:0;padding-block:5px}
  .header-logo{height:52px;padding-block:0}
 }
 @media(min-width:768px) and (max-width:1050px){

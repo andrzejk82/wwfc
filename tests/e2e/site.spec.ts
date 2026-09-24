@@ -9,9 +9,10 @@ test('desktop navigation remains compact and available after scrolling',async({p
  await expect.poll(async()=>Math.round((await header.boundingBox())?.y??-1)).toBe(0);
  const headerBox=await header.boundingBox();
  const navBox=await page.getByRole('navigation',{name:'Nawigacja główna'}).boundingBox();
- expect(headerBox?.height??0).toBeLessThanOrEqual(56);
- expect((navBox?.y??0)-(headerBox?.y??0)).toBeLessThanOrEqual(4);
- expect((headerBox?.y??0)+(headerBox?.height??0)-(navBox?.y??0)-(navBox?.height??0)).toBeLessThanOrEqual(4);
+ expect(headerBox?.height??0).toBeGreaterThanOrEqual(60);
+ expect(headerBox?.height??0).toBeLessThanOrEqual(64);
+ expect((navBox?.y??0)-(headerBox?.y??0)).toBeGreaterThanOrEqual(4);
+ expect((headerBox?.y??0)+(headerBox?.height??0)-(navBox?.y??0)-(navBox?.height??0)).toBeGreaterThanOrEqual(4);
  const navigation=page.getByRole('navigation',{name:'Nawigacja główna'});
  await expect(navigation.getByRole('link',{name:'Trenerzy'})).toBeVisible();
  const logoRight=(await page.locator('.brand').first().boundingBox())?.x??0;
