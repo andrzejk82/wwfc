@@ -2,16 +2,16 @@ import {test,expect} from '@playwright/test';
 
 test.beforeEach(async({page})=>{await page.clock.install({time:new Date('2026-09-09T10:00:00Z')});});
 
-test('an explicit all-days choice survives reload on mobile',async({page})=>{
+test('an explicit all-days choice survives reload',async({page})=>{
  await page.goto('/grafik/');await page.locator('#day').selectOption('');
  await expect(page.locator('[data-session]')).toHaveCount(81);await page.reload();
  await expect(page.locator('#day')).toHaveValue('');await expect(page.locator('[data-session]')).toHaveCount(81);
 });
 
-test('reset returns to the current week and the default day for the device',async({page},testInfo)=>{
+test('reset returns to the current full week on every device',async({page})=>{
  await page.goto('/grafik/?week=2026-09-21&day=2&discipline=boks');await page.getByRole('button',{name:'Wyczyść filtry'}).click();
  await expect(page.locator('#week-label')).toHaveText(/^7 wrz/);await expect(page.locator('#discipline')).toHaveValue('');
- const day=(testInfo.project.use.viewport?.width??1440)<768?'3':'';await expect(page.locator('#day')).toHaveValue(day);await expect(page).toHaveURL(/\/grafik\/$/);await page.reload();await expect(page.locator('#day')).toHaveValue(day);
+ await expect(page.locator('#day')).toHaveValue('');await expect(page.locator('.schedule-day')).toHaveCount(7);await expect(page).toHaveURL(/\/grafik\/$/);await page.reload();await expect(page.locator('#day')).toHaveValue('');
 });
 
 test('unknown coach and discipline URLs do not silently hide all classes',async({page})=>{
@@ -19,10 +19,10 @@ test('unknown coach and discipline URLs do not silently hide all classes',async(
  await expect(page.locator('#discipline')).toHaveValue('');await expect(page.locator('#coach')).toHaveValue('');await expect(page.locator('[data-session]')).toHaveCount(81);
 });
 
-test('changing discipline keeps automatic today active across midnight',async({page},testInfo)=>{
+test('changing discipline keeps the full week on mobile across midnight',async({page},testInfo)=>{
  test.skip((testInfo.project.use.viewport?.width??1440)>=768,'Desktop defaults to the full week');
  await page.clock.setSystemTime(new Date('2026-09-09T21:59:30Z'));await page.goto('/grafik/');await page.locator('#discipline').selectOption('boks');await page.clock.runFor(61000);
- await expect(page.locator('#day')).toHaveValue('4');await page.reload();await expect(page.locator('#day')).toHaveValue('4');
+ await expect(page.locator('#day')).toHaveValue('');await expect(page.locator('.schedule-day')).toHaveCount(7);await page.reload();await expect(page.locator('#day')).toHaveValue('');
 });
 
 test('browser back restores the preceding filter selection',async({page})=>{
@@ -40,11 +40,11 @@ test('age, coach and room filters combine and expose an empty result',async({pag
  await page.locator('#room').selectOption('cardio');await expect(page.locator('[data-session]')).toHaveCount(0);await expect(page.locator('#result-count')).toContainText('0');
 });
 
-test('Warsaw midnight updates automatic day and week without a reload',async({page},testInfo)=>{
+test('Warsaw midnight advances the full week without a reload',async({page},testInfo)=>{
  await page.clock.setSystemTime(new Date('2026-09-13T21:59:30Z'));await page.goto('/grafik/');
  await expect(page.locator('#week-label')).toHaveText(/^7 wrz/);await page.clock.runFor(61000);
  await expect(page.locator('#week-label')).toContainText('14 wrz');
- if((testInfo.project.use.viewport?.width??1440)<768)await expect(page.locator('#day')).toHaveValue('1');
+ if((testInfo.project.use.viewport?.width??1440)<768){await expect(page.locator('#day')).toHaveValue('');await expect(page.locator('.schedule-day')).toHaveCount(7);}
 });
 
 test('an explicitly selected historical week remains selected after midnight',async({page})=>{

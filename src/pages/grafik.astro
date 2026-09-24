@@ -7,15 +7,16 @@ const c=getContent();
 const phone=c.settings.phone;const tel=phone?.replace(/[^\d+]/g,'');
 ---
 <BaseLayout title="Grafik zajęć" description="Grafik WWFC: godziny, trenerzy, grupy wiekowe i poziomy. Wybierz swój trening w Ożarowie Mazowieckim." canonicalPath="/grafik/">
- <PageHead title="Znajdź swój trening." eyebrow="Grafik zajęć" intro="Wybierz dyscyplinę, dzień i swoją grupę. Wszystkie godziny podajemy w czasie polskim."/>
+ <PageHead title="Znajdź swój trening." eyebrow="Grafik zajęć" intro="Zobacz cały tydzień lub zawęź grafik do wybranego dnia i grupy. Wszystkie godziny podajemy w czasie polskim."/>
  <section class="section" style="padding-top:32px"><div class="wrap">
   <div class="schedule-app" hidden>
+   <div class="week-nav"><button id="previous-week" class="btn secondary" aria-label="Poprzedni tydzień">←</button><div><h2 id="week-label"></h2><button id="current-week">Wróć do bieżącego tygodnia</button></div><button id="next-week" class="btn secondary" aria-label="Następny tydzień">→</button></div>
+   <div id="week-overview"></div>
    <form id="filters" class="filters" aria-label="Filtry grafiku">
     <div class="filter-primary"><label>Dyscyplina<select id="discipline" name="discipline"><option value="">Wszystkie dyscypliny</option>{c.disciplines.map(x=><option value={x.slug}>{x.name}</option>)}</select></label><label>Grupa<select id="audience" name="audience"><option value="">Wszystkie grupy</option>{Object.entries(audiences).map(([v,l])=><option value={v}>{l}</option>)}</select></label><label>Dzień<select id="day" name="day"><option value="">Cały tydzień</option>{days.map((d,i)=><option value={i+1}>{d}</option>)}</select></label></div>
     <details id="advanced"><summary>Więcej filtrów: poziom, wiek, trener, sala</summary><div class="filter-extra"><label>Poziom<select name="level" id="level"><option value="">Wszystkie poziomy</option>{Object.entries(levels).map(([v,l])=><option value={v}>{l}</option>)}</select></label><label>Wiek dziecka<input id="age" name="age" type="number" min="1" max="100" placeholder="Np. 8"/></label><label>Trener<select name="coach" id="coach"><option value="">Wszyscy trenerzy</option>{c.coaches.map(x=><option value={x.slug}>{x.name}</option>)}</select></label><label>Sala<select name="room" id="room"><option value="">Wszystkie sale</option>{Object.entries(rooms).map(([v,l])=><option value={v}>{l}</option>)}</select></label></div></details>
     <div class="filter-actions"><button type="button" id="reset-filters">Wyczyść filtry</button><span id="result-count" role="status" aria-live="polite"></span><button type="button" id="print-schedule">Drukuj grafik</button></div>
    </form>
-   <div class="week-nav"><button id="previous-week" class="btn secondary" aria-label="Poprzedni tydzień">←</button><div><h2 id="week-label"></h2><button id="current-week">Wróć do bieżącego tygodnia</button></div><button id="next-week" class="btn secondary" aria-label="Następny tydzień">→</button></div>
    <div id="schedule-notices"></div><div id="schedule-results"></div>
    <p class="muted" style="font-size:.8rem;margin-top:24px">Godziny oznaczają początek treningu. Jeśli czas zakończenia nie jest podany, potwierdź go w recepcji. Kliknij zajęcia, aby zobaczyć szczegóły.</p>
   </div>
@@ -32,4 +33,35 @@ const phone=c.settings.phone;const tel=phone?.replace(/[^\d+]/g,'');
  .filters{border:1px solid var(--line);padding:24px;margin-bottom:30px}.filter-primary{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.filter-extra{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding-top:20px}.filters label{display:grid;gap:9px;font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.filters select,.filters input{border:1px solid #a8a59e;background:transparent;padding:13px 12px;width:100%;min-width:0;border-radius:0;font-size:.9rem;text-transform:none;letter-spacing:normal;min-height:48px}.filters details{margin-top:22px}.filters summary{font-size:.83rem;padding:8px 0}.filter-actions{display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding-top:20px;font-size:.8rem}.filter-actions button,#current-week{background:none;border:0;text-decoration:underline;text-underline-offset:4px;padding:8px 0;font-size:.8rem}.week-nav{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:30px;text-align:center}.week-nav h2{font-size:2rem;line-height:1.1;margin:0 0 8px}.week-nav .btn{padding:12px 18px}.schedule-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:start}.schedule-day h3{font-family:Inter,sans-serif;font-size:.7rem;letter-spacing:0;line-height:1.6;margin:0;padding:16px 8px;border-top:3px solid var(--ink)}.schedule-day.is-today h3{border-color:var(--orange);background:#e7e3da}.session-card{display:block;text-align:left;width:100%;padding:14px 10px;margin:0 0 9px;border:1px solid var(--line);border-left:3px solid #86837d;background:#ebe8e1;min-width:0}.session-card:hover{background:#e0dcd3}.session-card strong{font-family:'Barlow Condensed';font-size:1.45rem;text-transform:uppercase;line-height:1.1;display:block;margin:10px 0}.session-card time{font-size:1.05rem;font-weight:750}.session-card small{font-size:.68rem;display:block;line-height:1.6;margin-top:5px;overflow-wrap:anywhere}.session-card.intro{border-left-color:var(--orange)}.session-card.cancelled{background:#dedbd4}.session-card.cancelled strong{text-decoration:line-through}.session-card .status{font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;font-weight:750}.schedule-grid.single{grid-template-columns:1fr}.single .schedule-day h3{font-size:1rem}.single .session-card{display:grid;grid-template-columns:85px 1fr 1fr;gap:12px;align-items:center;padding:16px}.single .session-card strong{margin:0}.single .session-card .status{grid-column:2/-1}.table-scroll{overflow-x:auto}.schedule-fallback table{border-collapse:collapse;width:100%;font-size:.85rem}.schedule-fallback th,.schedule-fallback td{text-align:left;padding:14px 10px;border-bottom:1px solid var(--line);line-height:1.5}.schedule-fallback section{margin-top:35px}.empty{padding:35px;border:1px solid var(--line);line-height:1.7}.schedule-day .empty{padding:14px;font-size:.8rem}.schedule-notice{margin-bottom:20px}
  @media(max-width:1050px){.schedule-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.filter-extra{grid-template-columns:1fr 1fr}}
  @media(max-width:767px){.filters{padding:18px}.filter-primary,.filter-extra{grid-template-columns:1fr;gap:16px}.schedule-grid{grid-template-columns:1fr}.session-card{padding:18px}.session-card strong{font-size:1.7rem}.session-card small{font-size:.8rem}.single .session-card{grid-template-columns:58px 1fr;gap:10px}.single .session-card .session-meta{grid-column:2}.week-nav h2{font-size:1.5rem}.week-nav .btn{padding:10px;min-height:44px}.schedule-fallback table{font-size:.7rem}.schedule-fallback th,.schedule-fallback td{padding:10px 5px;overflow-wrap:anywhere}.schedule-fallback td:first-child{max-width:72px}.schedule-day h3{font-size:.9rem}}
+
+ .filters{background:#eae6df;border-top:3px solid var(--orange)}
+ .schedule-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+ .schedule-day{min-width:0;padding:16px;border:1px solid var(--line);background:#f9f7f2}
+ .schedule-day h3{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 4px 16px;border-top-width:4px;font-family:'Barlow Condensed',sans-serif;font-size:1.55rem;line-height:1.1}
+ .schedule-day h3 .day-count{font-family:'Inter Variable',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap}
+ .schedule-day.is-today h3{background:#f6ded7}
+ .session-card{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:start;padding:14px;background:#fff}
+ .session-card time{grid-row:1/3;font-size:1.12rem;line-height:1.3}
+ .session-card strong{font-size:1.45rem;line-height:1.1;margin:0}
+ .session-card .session-meta,.session-card .status{grid-column:2}
+ .session-card small{font-size:.74rem;line-height:1.45;margin-top:3px}
+ .schedule-grid.single{grid-template-columns:1fr}
+ .schedule-grid.single .session-card{grid-template-columns:85px minmax(0,1fr)}
+ .schedule-grid.single .session-card .session-meta,.schedule-grid.single .session-card .status{grid-column:2}
+ .week-overview{display:none}
+ @media(max-width:767px){
+  .filter-primary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .filter-primary label:first-child{grid-column:1/-1}
+  .schedule-grid{grid-template-columns:1fr;gap:16px}
+  .schedule-day{padding:12px;scroll-margin-top:12px}
+  .schedule-day h3{font-size:1.3rem;padding:9px 2px 13px}
+  .schedule-day h3 .day-count{font-size:.68rem}
+  .session-card,.schedule-grid.single .session-card{grid-template-columns:58px minmax(0,1fr);gap:4px 10px;padding:12px}
+  .session-card strong{font-size:1.35rem}
+  .session-card small{font-size:.74rem}
+  .week-overview{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:18px}
+  .week-overview-link{min-width:0;min-height:52px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;background:#e9e5dd;border:1px solid var(--line);text-decoration:none;font-size:.63rem;font-weight:700;text-transform:uppercase}
+  .week-overview-link strong{font-size:.82rem}
+  .week-overview-link.is-today{border-color:var(--orange);background:#f6ded7}
+ }
 </style>
