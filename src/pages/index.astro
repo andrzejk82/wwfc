@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Today from '../components/Today.astro';
-import LocalVideo from '../components/LocalVideo.astro';
+import VideoPlayer from '../components/VideoPlayer.astro';
 import ClubHighlights from '../components/ClubHighlights.astro';
 import {getContent} from '../lib/content/repository';
 const c=getContent();
@@ -11,14 +11,7 @@ const address=[c.settings.address?.street,c.settings.address?.city].filter(Boole
  <section class="hero dark"><div class="wrap"><div class="hero-top"><div><p class="eyebrow">{address}</p><h1>Wejdź<br/>na <span>matę.</span></h1><p class="lead">Pierwszy krok, kolejny poziom, własne tempo.<br/>Znajdź swoje miejsce w {c.settings.clubName??'Warsaw West Fight Club'}.</p><div class="actions"><a class="btn" href="/pierwszy-trening/">Mój pierwszy trening ↗</a><a class="btn secondary" href="/grafik/">Sprawdź grafik</a></div></div></div><div class="hero-footer"><span><strong>OD ZERA DO SWOJEGO POZIOMU</strong></span><span>Dorośli · Dzieci i młodzież · Kobiety</span><span>WARSAW WEST / EST. OŻARÓW</span></div></div></section>
  <div class="ticker orange"><div class="wrap"><span>Boks / Kickboxing</span><span>MMA / BJJ</span><span>Muay Thai / Zapasy</span><span>Ruch / Siła / Mobilność</span></div></div>
  <section class="section"><div class="wrap"><div class="section-heading"><div><h2>Twoja droga<br/>zaczyna się tutaj.</h2></div><p class="lead" style="max-width:380px">Nie musisz znać wszystkich zasad.<br/>Na początek wybierz grupę dla siebie.</p></div><div class="three"><article class="path-card featured"><span class="number">01 / PIERWSZY RAZ</span><h3>Zaczynam od zera</h3><p>Grupy INTRO, jasny plan pierwszej wizyty i pomoc w wyborze zajęć.</p><a href="/grafik/?level=intro">Znajdź grupę INTRO ↗</a></article><article class="path-card"><span class="number">02 / MŁODA DRUŻYNA</span><h3>Dzieci i młodzież</h3><p>Od Westusiów po grupy nastolatków. Znajdź zajęcia odpowiednie do wieku.</p><a href="/grafik/?audience=children">Znajdź zajęcia dla dziecka ↗</a></article><article class="path-card"><span class="number">03 / WŁASNE TEMPO</span><h3>Zajęcia dla kobiet</h3><p>Boks, BJJ No-Gi i kolejne możliwości w pełnym grafiku klubu.</p><a href="/grafik/?audience=women">Znajdź swoją grupę ↗</a></article></div></div></section>
- <section class="section training-section" aria-labelledby="training-heading"><div class="wrap">
-  <div class="section-heading"><h2 id="training-heading">Poczuj atmosferę<br/>WWFC.</h2><p class="lead">Trening tworzą ludzie. Zobacz, jak wygląda praca na macie i poznaj energię klubu.</p></div>
-  <div class="training-media">
-   <figure class="training-main"><img src="/images/training-group.webp" alt="Uczestnicy treningu na macie WWFC" width="760" height="1013" loading="lazy"/><figcaption>Razem na macie</figcaption></figure>
-   <figure><img src="/images/training-action.webp" alt="Pary ćwiczące sporty walki na macie WWFC" width="760" height="1013" loading="lazy"/><figcaption>Technika w praktyce</figcaption></figure>
-   <div class="training-clip"><LocalVideo src="/images/training-film.mp4" poster="/images/training-film-poster.webp" title="Trening w WWFC" width={540} height={720}/><p>Krótki moment z zajęć</p></div>
-  </div>
- </div></section>
+ <section class="section film-section"><div class="wrap"><div class="section-heading"><h2>Poczuj atmosferę<br/>WWFC.</h2><p class="lead">Ludzie, energia i pierwsze spotkania na macie. Zobacz materiał z otwarcia klubu.</p></div><VideoPlayer videoId="JWervAn7Czk" title="Otwarcie Warsaw West Fight Club" poster="/images/opening-film.webp" /></div></section>
  <section class="section rule"><div class="wrap split"><div><h2>Mniej szukania.<br/>Więcej treningu.</h2><p class="lead">Dyscyplina, poziom, godzina. Sprawdź grafik i wybierz zajęcia, które pasują do Ciebie.</p><p class="muted">Na zajęcia grupowe nie obowiązują wcześniejsze zapisy — zgodnie z informacją klubu.</p></div><Today/></div></section>
  <section class="section dark"><div class="wrap"><div class="section-heading"><div><h2>Jedna mata.<br/>Wiele możliwości.</h2></div><a class="btn secondary" href="/dyscypliny/">Wszystkie dyscypliny ↗</a></div><div class="discipline-list">{c.disciplines.filter(d=>['boks','kickboxing','mma','bjj-no-gi','muay-thai','zapasy'].includes(d.slug)).map(d=><a class="discipline-link" href={`/dyscypliny/${d.slug}/`}>{d.name}<span aria-hidden="true">↗</span></a>)}</div></div></section>
  <ClubHighlights/>
@@ -40,13 +33,9 @@ const address=[c.settings.address?.street,c.settings.address?.city].filter(Boole
 </script>
 
 <style>
- .training-section{padding-top:24px}
- .training-section .lead{max-width:430px;margin:0}
- .training-media{display:grid;grid-template-columns:1.15fr .8fr .75fr;gap:18px;align-items:start}
- .training-media figure{margin:0}
- .training-media img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;filter:grayscale(1)}
- .training-media figcaption,.training-clip p{margin:12px 0 0;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
- @media(max-width:767px){.training-section{padding-top:0}.training-media{grid-template-columns:1fr 1fr;gap:14px}.training-main{grid-column:1/-1}.training-main img{aspect-ratio:4/3}.training-media figcaption,.training-clip p{font-size:.65rem}}
+ .film-section{padding-top:24px;padding-bottom:80px}
+ .film-section .lead{max-width:440px}
+ @media(max-width:767px){.film-section{padding-top:0;padding-bottom:48px}}
  .hero {
   background-image: linear-gradient(90deg, rgba(10,10,10,.68) 0%, rgba(10,10,10,.42) 40%, rgba(10,10,10,.05) 75%), url('/images/club-hero-1600.webp');
   background-size: cover;
