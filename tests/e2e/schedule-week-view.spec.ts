@@ -38,11 +38,16 @@ test('mobile week overview links to every day without hiding other days', async 
   await expect(page.locator('#schedule-day-7')).toBeInViewport();
 });
 
-test('desktop days have enough width to read class details', async ({ page }, testInfo) => {
-  test.skip((testInfo.project.use.viewport?.width ?? 0) < 1200, 'Wide desktop layout only');
+test('desktop fits all seven days side by side without horizontal overflow', async ({ page }, testInfo) => {
+  test.skip((testInfo.project.use.viewport?.width ?? 0) < 1024, 'Desktop layout only');
   await page.goto('/grafik/');
-  const width = (await page.locator('.schedule-day').first().boundingBox())?.width ?? 0;
-  expect(width).toBeGreaterThanOrEqual(400);
+  const days = page.locator('.schedule-day');
+  await expect(days).toHaveCount(7);
+  const first = await days.first().boundingBox();
+  const last = await days.last().boundingBox();
+  expect(Math.abs((first?.y ?? 0) - (last?.y ?? Infinity))).toBeLessThan(2);
+  expect(first?.width ?? 0).toBeGreaterThanOrEqual(120);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
 test('mobile shows the week overview before the filters', async ({ page }, testInfo) => {
