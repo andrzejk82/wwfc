@@ -78,4 +78,12 @@ const phone=c.settings.phone;const tel=phone?.replace(/[^\d+]/g,'');
   .schedule-grid.single .schedule-day{padding:16px;border:1px solid var(--line);background:#f9f7f2}
   .schedule-grid.single .session-card{display:grid;padding:14px}
  }
+ .session-card.changed{background:#fff0d6;border-color:#b77719;border-left:6px solid #9a5b00}
+ .session-card.changed:hover{background:#ffe5b8}
+ .session-card.cancelled{background:#f9d8d1;border-color:#bd544b;border-left:7px solid #9c241b}
+ .session-card.cancelled:hover{background:#f5c9bf}
+ .session-card.cancelled strong{text-decoration-line:line-through;text-decoration-thickness:3px;text-decoration-color:#9c241b}
+ .schedule-grid .session-card:is(.changed,.cancelled) .status{grid-column:1/-1;width:fit-content;max-width:100%;padding:4px 7px;margin-bottom:5px;background:#9a5b00;color:#fff;font-size:.64rem;line-height:1.25;font-weight:800;overflow-wrap:anywhere}
+ .schedule-grid .session-card.cancelled .status{background:#9c241b}
+ .session-card:is(.changed,.cancelled) time{grid-row:auto}
 </style>
